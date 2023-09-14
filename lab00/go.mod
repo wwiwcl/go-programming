@@ -1,3 +1,3 @@
 module main
 
-go 1.20.8
+go 1.20
