@@ -54,7 +54,7 @@ func Calculator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if op == "add" {
-		ans = n2 + n1
+		ans = n1 + n2
 		ans_str += num1
 		ans_str += " + "
 		ans_str += num2
