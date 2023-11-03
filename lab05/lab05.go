@@ -45,14 +45,26 @@ func YouTubePage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error creating YouTube client", http.StatusInternalServerError)
 		return
 	}
-	call := service.Videos.List([]string{"snippet"}).Id(video.id)
+	call := service.Videos.List([]string{"snippet", "statistics"}).Id(video.id)
 	response, err := call.Do()
 	if err != nil {
 		http.Error(w, "Error calling YouTube API", http.StatusInternalServerError)
 		return
 	}
 	publishedAt := response.Items[0].Snippet.PublishedAt
-	fmt.Fprintf(w, "Published Date: %s", publishedAt)
+	title := response.Items[0].Snippet.Title
+	channelTitle := response.Items[0].Snippet.ChannelTitle
+	likeCount := response.Items[0].Statistics.LikeCount
+	viewCount := response.Items[0].Statistics.ViewCount
+	commentCount := response.Items[0].Statistics.CommentCount
+	video.date = publishedAt
+	video.title = title
+	video.channel = channelTitle
+	video.like_count = int(likeCount)
+	video.view_count = int(viewCount)
+	video.comment_count = int(commentCount)
+	fmt.Fprintf(w, "Published Date: %s\nTitle: %s\nChannel: %s\nLikes: %d\nViews: %d\nComments: %d",
+		video.date, video.title, video.channel, video.like_count, video.view_count, video.comment_count)
 }
 
 func main() {
