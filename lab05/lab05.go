@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
+	"html/template"
 )
 
 // TODO: Please create a struct to include the information of a video
@@ -21,6 +22,19 @@ type video_info struct{
 	comment_count	int
 }
 
+func getTemplatePath(filename string) string {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return dir + "/" + filename
+}
+
+func errorPage(w http.ResponseWriter) {
+	errtmpl := template.Must(template.ParseFiles(getTemplatePath("error.html")))
+	errtmpl.Execute(w, nil)
+}
+
 func YouTubePage(w http.ResponseWriter, r *http.Request) {
 	// TODO: Get API token from .env file
 	// TODO: Get video ID from URL query `v`
@@ -29,12 +43,13 @@ func YouTubePage(w http.ResponseWriter, r *http.Request) {
 	// TODO: Display the information in an HTML page through `template`
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		errorPage(w)
+		return
 	}
 	apiKey := os.Getenv("YOUTUBE_API_KEY")
-	video := video_info{id: r.URL.Query().Get("v"), date: "", title: "", channel: "", like_count: 0, view_count: 0, comment_count: 0}
-	if video.id == "" {
-		http.Error(w, "Missing 'v' query parameter (video ID)", http.StatusBadRequest)
+	videoID := r.URL.Query().Get("v")
+	if videoID == "" {
+		errorPage(w)
 		return
 	}
 	client := &http.Client{
@@ -42,13 +57,13 @@ func YouTubePage(w http.ResponseWriter, r *http.Request) {
 	}
 	service, err := youtube.New(client)
 	if err != nil {
-		http.Error(w, "Error creating YouTube client", http.StatusInternalServerError)
+		errorPage(w)
 		return
 	}
-	call := service.Videos.List([]string{"snippet", "statistics"}).Id(video.id)
+	call := service.Videos.List([]string{"snippet", "statistics"}).Id(videoID)
 	response, err := call.Do()
 	if err != nil {
-		http.Error(w, "Error calling YouTube API", http.StatusInternalServerError)
+		errorPage(w)
 		return
 	}
 	publishedAt := response.Items[0].Snippet.PublishedAt
@@ -57,12 +72,15 @@ func YouTubePage(w http.ResponseWriter, r *http.Request) {
 	likeCount := response.Items[0].Statistics.LikeCount
 	viewCount := response.Items[0].Statistics.ViewCount
 	commentCount := response.Items[0].Statistics.CommentCount
-	video.date = publishedAt
-	video.title = title
-	video.channel = channelTitle
-	video.like_count = int(likeCount)
-	video.view_count = int(viewCount)
-	video.comment_count = int(commentCount)
+	video := video_info{
+		id:            videoID,
+		date:          publishedAt,
+		title:         title,
+		channel:       channelTitle,
+		like_count:    int(likeCount),
+		view_count:    int(viewCount),
+		comment_count: int(commentCount),
+	}
 	fmt.Fprintf(w, "Published Date: %s\nTitle: %s\nChannel: %s\nLikes: %d\nViews: %d\nComments: %d",
 		video.date, video.title, video.channel, video.like_count, video.view_count, video.comment_count)
 }
