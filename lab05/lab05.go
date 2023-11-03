@@ -30,6 +30,7 @@ type Page struct{
 	CommentCount	string
 	PublishedAt	string
 	LikeCount	string
+	ChannelTitle	string
 }
 
 func getTemplatePath(filename string) string {
@@ -108,6 +109,7 @@ func YouTubePage(w http.ResponseWriter, r *http.Request) {
 		CommentCount:	strconv.Itoa(video.comment_count),
 		PublishedAt:	video.date,
 		LikeCount:		strconv.Itoa(video.like_count),
+		ChannelTitle:	video.channel,
 	}
 	tmpl.Execute(w, data)
 	return
