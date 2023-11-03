@@ -9,6 +9,7 @@ import (
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
 	"html/template"
+	"time"
 )
 
 // TODO: Please create a struct to include the information of a video
@@ -33,6 +34,15 @@ func getTemplatePath(filename string) string {
 func errorPage(w http.ResponseWriter) {
 	errtmpl := template.Must(template.ParseFiles(getTemplatePath("error.html")))
 	errtmpl.Execute(w, nil)
+}
+
+func formatDate(publishedAt string) string {
+	t, err := time.Parse(time.RFC3339, publishedAt)
+	if err != nil {
+		log.Println("Error parsing time:", err)
+		return ""
+	}
+	return t.Format("2006年01月02日")
 }
 
 func YouTubePage(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +72,7 @@ func YouTubePage(w http.ResponseWriter, r *http.Request) {
 	}
 	call := service.Videos.List([]string{"snippet", "statistics"}).Id(videoID)
 	response, err := call.Do()
-	if err != nil {
+	if err != nil || len(response.Items) == 0 {
 		errorPage(w)
 		return
 	}
@@ -74,15 +84,15 @@ func YouTubePage(w http.ResponseWriter, r *http.Request) {
 	commentCount := response.Items[0].Statistics.CommentCount
 	video := video_info{
 		id:            videoID,
-		date:          publishedAt,
+		date:          formatDate(publishedAt),
 		title:         title,
 		channel:       channelTitle,
 		like_count:    int(likeCount),
 		view_count:    int(viewCount),
 		comment_count: int(commentCount),
 	}
-	fmt.Fprintf(w, "Published Date: %s\nTitle: %s\nChannel: %s\nLikes: %d\nViews: %d\nComments: %d",
-		video.date, video.title, video.channel, video.like_count, video.view_count, video.comment_count)
+	fmt.Fprintf(w, "Published Date: %s\nTitle: %s\nChannel: %s\nLikes: %d\nViews: %d\nComments: %d\nId: %s",
+		video.date, video.title, video.channel, video.like_count, video.view_count, video.comment_count, video.id)
 }
 
 func main() {
