@@ -6,9 +6,20 @@ import (
 	"fmt"
 	"os"
 	"github.com/joho/godotenv"
+	"google.golang.org/api/googleapi/transport"
+	"google.golang.org/api/youtube/v3"
 )
 
 // TODO: Please create a struct to include the information of a video
+type video_info struct{
+	id	string
+	date	string
+	title	string
+	channel	string
+	like_count	int
+	view_count	int
+	comment_count	int
+}
 
 func YouTubePage(w http.ResponseWriter, r *http.Request) {
 	// TODO: Get API token from .env file
@@ -20,8 +31,28 @@ func YouTubePage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	value := os.Getenv("YOUTUBE_API_KEY")
-	fmt.Fprintf(w, value)
+	apiKey := os.Getenv("YOUTUBE_API_KEY")
+	video := video_info{id: r.URL.Query().Get("v"), date: "", title: "", channel: "", like_count: 0, view_count: 0, comment_count: 0}
+	if video.id == "" {
+		http.Error(w, "Missing 'v' query parameter (video ID)", http.StatusBadRequest)
+		return
+	}
+	client := &http.Client{
+		Transport: &transport.APIKey{Key: apiKey},
+	}
+	service, err := youtube.New(client)
+	if err != nil {
+		http.Error(w, "Error creating YouTube client", http.StatusInternalServerError)
+		return
+	}
+	call := service.Videos.List([]string{"snippet"}).Id(video.id)
+	response, err := call.Do()
+	if err != nil {
+		http.Error(w, "Error calling YouTube API", http.StatusInternalServerError)
+		return
+	}
+	publishedAt := response.Items[0].Snippet.PublishedAt
+	fmt.Fprintf(w, "Published Date: %s", publishedAt)
 }
 
 func main() {
