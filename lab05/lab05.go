@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-	"fmt"
+	"strconv"
 	"os"
 	"github.com/joho/godotenv"
 	"google.golang.org/api/googleapi/transport"
@@ -21,6 +21,15 @@ type video_info struct{
 	like_count	int
 	view_count	int
 	comment_count	int
+}
+
+type Page struct{
+	Id	string
+	Title	string
+	ViewCount	string
+	CommentCount	string
+	PublishedAt	string
+	LikeCount	string
 }
 
 func getTemplatePath(filename string) string {
@@ -91,8 +100,17 @@ func YouTubePage(w http.ResponseWriter, r *http.Request) {
 		view_count:    int(viewCount),
 		comment_count: int(commentCount),
 	}
-	fmt.Fprintf(w, "Published Date: %s\nTitle: %s\nChannel: %s\nLikes: %d\nViews: %d\nComments: %d\nId: %s",
-		video.date, video.title, video.channel, video.like_count, video.view_count, video.comment_count, video.id)
+	tmpl := template.Must(template.ParseFiles(getTemplatePath("index.html")))
+	data := Page{
+		Id:				video.id,
+		Title:			video.title,
+		ViewCount:		strconv.Itoa(video.view_count),
+		CommentCount:	strconv.Itoa(video.comment_count),
+		PublishedAt:	video.date,
+		LikeCount:		strconv.Itoa(video.like_count),
+	}
+	tmpl.Execute(w, data)
+	return
 }
 
 func main() {
