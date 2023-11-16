@@ -13,10 +13,10 @@ func CheckPrime(this js.Value, args []js.Value) interface{} {
     n, _ := strconv.Atoi(val)
     result := big.NewInt(int64(n)).ProbablyPrime(0)
     fmt.Println("CheckPrime result: " + strconv.FormatBool(result))
-    if result == true {
-        js.Global().Get("document").Call("getElementById", "answer").Set("innerText", "It's prime")
-    } else {
+    if result == false {
         js.Global().Get("document").Call("getElementById", "answer").Set("innerText", "It's not prime")
+    } else {
+        js.Global().Get("document").Call("getElementById", "answer").Set("innerText", "It's prime")
     }
     return result
 }
