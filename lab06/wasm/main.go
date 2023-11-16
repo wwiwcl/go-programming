@@ -8,17 +8,17 @@ import (
 )
 
 func CheckPrime(this js.Value, args []js.Value) interface{} {
-	val := js.Global().Get("value").Get("value").String()
-	fmt.Println("CheckPrime called with value: " + val)
-	n, _ := strconv.Atoi(val)
-	result := big.NewInt(int64(n)).ProbablyPrime(0)
-	fmt.Println("CheckPrime result: " + strconv.FormatBool(result))
-	if result == true{
-		js.Global().Get("answer").Set("InnerText", "It's prime")
-	}else{
-		js.Global().Get("answer").Set("InnerText", "It's not prime")
-	}
-	return result
+    val := js.Global().Get("document").Call("getElementById", "value").Get("value").String()
+    fmt.Println("CheckPrime called with value: " + val)
+    n, _ := strconv.Atoi(val)
+    result := big.NewInt(int64(n)).ProbablyPrime(0)
+    fmt.Println("CheckPrime result: " + strconv.FormatBool(result))
+    if result == true {
+        js.Global().Get("document").Call("getElementById", "answer").Set("innerText", "It's prime")
+    } else {
+        js.Global().Get("document").Call("getElementById", "answer").Set("innerText", "It's not prime")
+    }
+    return result
 }
 
 func registerCallbacks() {
