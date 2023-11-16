@@ -8,21 +8,12 @@ import (
 )
 
 func CheckPrime(this js.Value, args []js.Value) interface{} {
-	if len(args) != 1 {
-		return "Invalid number of arguments. Expected 1 argument"
-	}
-
-	number := args[0].String()
-	n, err := strconv.Atoi(number)
-	if err != nil {
-		return "Invalid input. Please provide a valid number"
-	}
-
-	bigInt := big.NewInt(int64(n))
-
-	isPrime := bigInt.ProbablyPrime(20) // Adjust the Miller-Rabin iterations for higher certainty
-
-	return isPrime
+	val := js.Global().Get("value").Get("value").String()
+	fmt.Println("CheckPrime called with value: " + val)
+	n, _ := strconv.Atoi(val)
+	result := big.NewInt(int64(n)).ProbablyPrime(0)
+	fmt.Println("CheckPrime result: " + strconv.FormatBool(result))
+	return result
 }
 
 func registerCallbacks() {
