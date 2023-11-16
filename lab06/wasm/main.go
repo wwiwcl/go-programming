@@ -14,10 +14,9 @@ func CheckPrime(this js.Value, args []js.Value) interface{} {
 	result := big.NewInt(int64(n)).ProbablyPrime(0)
 	fmt.Println("CheckPrime result: " + strconv.FormatBool(result))
 	if result == true{
-		js.Global().Get("answer").Set("answer", "pass")
+		js.Global().Get("answer").Set("InnerText", "It's prime")
 	}else{
-		js.Global().Get("answer").Set("answer", "fail")
-	
+		js.Global().Get("answer").Set("InnerText", "It's not prime")
 	}
 	return result
 }
