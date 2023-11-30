@@ -2,7 +2,6 @@ package main
 
 import (
 	"strconv"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,17 +21,17 @@ var bookshelf = []Book{
 }
 
 func getBooks(c *gin.Context) {
-    c.JSON(200, bookshelf) //OK
+    c.JSON(200, bookshelf)
 }
 func getBook(c *gin.Context) {
     id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
     for _, book := range bookshelf {
         if id == book.Id {
-            c.JSON(200, book) //OK
+            c.JSON(200, book)
             return
         }
     }
-    c.JSON(404, gin.H{"message": "book not found"}) //Not found
+    c.JSON(404, gin.H{"message": "book not found"})
 }
 func addBook(c *gin.Context) {
     var newBook Book
@@ -42,25 +41,25 @@ func addBook(c *gin.Context) {
     }
     for _, book := range bookshelf {
         if newBook.Name == book.Name {
-            c.JSON(409, gin.H{"message": "duplicate book name"}) //Conflict
+            c.JSON(409, gin.H{"message": "duplicate book name"})
             return
         }
     }
     bookId++
     newBook.Id = bookId
     bookshelf = append(bookshelf, newBook)
-    c.JSON(201, newBook) //Created
+    c.JSON(201, newBook)
 }
 func deleteBook(c *gin.Context) {
     id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
     for i, book := range bookshelf {
         if id == book.Id {
             bookshelf = append(bookshelf[:i], bookshelf[i+1:]...)
-            c.JSON(204, nil) // No content
+            c.JSON(204, nil)
             return
         }
     }
-    c.JSON(204, gin.H{"message": "book not found"}) // Not found
+    c.JSON(204, gin.H{"message": "book not found"})
 }
 
 func updateBook(c *gin.Context) {
@@ -71,7 +70,7 @@ func updateBook(c *gin.Context) {
     }
     for _, book := range bookshelf {
         if newBook.Name == book.Name {
-            c.JSON(409, gin.H{"message": "duplicate book name"}) //Conflict
+            c.JSON(409, gin.H{"message": "duplicate book name"})
             return
         }
     }
@@ -80,11 +79,11 @@ func updateBook(c *gin.Context) {
             book.Name = newBook.Name
             book.Pages = newBook.Pages
             bookshelf[i] = book
-            c.JSON(200, bookshelf[i]) //OK
+            c.JSON(200, bookshelf[i]) 
             return
         }
     }
-    c.JSON(404, gin.H{"message": "book not found"}) //Not found
+    c.JSON(404, gin.H{"message": "book not found"})
 }
 
 func main() {
