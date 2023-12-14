@@ -9,6 +9,7 @@ import (
 
 func main() {
     max := flag.Int("max", 10, "Max number of comments to show")
+    
     flag.Parse()
 
 	if len(flag.Args()) > 0 {
