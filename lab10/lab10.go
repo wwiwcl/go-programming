@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"context"
+	"unicode/utf8"
 
 	"github.com/gorilla/websocket"
 	"github.com/reactivex/rxgo/v2"
@@ -136,9 +137,17 @@ func InitObservable() {
         msg := item.(string)
         for _, name := range sensativeName {
             if strings.Contains(msg, name) {
-                // Replace the second character of the sensitive name with "*"
-                replacement := name[0:1] + "*" + name[2:]
-                msg = strings.ReplaceAll(msg, name, replacement)
+                // Count the number of characters (runes) in the sensitive name
+                runeCount := utf8.RuneCountInString(name)
+                if runeCount > 1 {
+                    // Convert the sensitive name to a slice of runes
+                    runes := []rune(name)
+                    // Replace the second character with "*"
+                    runes[1] = '*'
+                    // Convert the slice of runes back to a string
+                    replacement := string(runes)
+                    msg = strings.ReplaceAll(msg, name, replacement)
+                }
             }
         }
         return msg, nil
