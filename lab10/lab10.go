@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"context"
 
 	"github.com/gorilla/websocket"
 	"github.com/reactivex/rxgo/v2"
@@ -17,6 +19,8 @@ var (
 	leaving       = make(chan client)
 	messages      = make(chan rxgo.Item) // all incoming client messages
 	ObservableMsg = rxgo.FromChannel(messages)
+	swearWords []string
+	sensativeName []string
 )
 
 func broadcaster() {
@@ -80,6 +84,38 @@ func wshandle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func init() {
+	file, err := os.Open("swear_word.txt")
+	if err != nil{
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan(){
+		swearWords = append(swearWords, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil{
+		log.Fatal(err)
+	}
+
+	file2, err := os.Open("sensitive_name.txt")
+	if err != nil{
+		log.Fatal(err)
+	}
+	defer file2.Close()
+
+	scanner = bufio.NewScanner(file2)
+	for scanner.Scan() {
+		sensativeName = append(sensativeName, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil{
+		log.Fatal(err)
+	}
+}
+
 func InitObservable() {
 	// TODO: Please create an Observable to handle the messages
 	/*
@@ -88,6 +124,25 @@ func InitObservable() {
 			...
 		})
 	*/
+	ObservableMsg = rxgo.FromChannel(messages).Filter(func(item interface{}) bool {
+        msg := item.(string)
+        for _, word := range swearWords {
+            if strings.Contains(msg, word) {
+                return false
+            }
+        }
+        return true
+    }).Map(func(_ context.Context, item interface{}) (interface{}, error) {
+        msg := item.(string)
+        for _, name := range sensativeName {
+            if strings.Contains(msg, name) {
+                // Replace the second character of the sensitive name with "*"
+                replacement := name[0:1] + "*" + name[2:]
+                msg = strings.ReplaceAll(msg, name, replacement)
+            }
+        }
+        return msg, nil
+    })
 }
 
 func main() {
